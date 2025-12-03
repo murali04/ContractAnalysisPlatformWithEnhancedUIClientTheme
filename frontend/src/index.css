@@ -3,3 +3,137 @@
 .recharts-legend-item-text {
   color: #000 !important;
 }
+
+/* obligations scroll bar */
+
+.scroll-bar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #a100ff #f0f0f0 !important;
+}
+
+.bank .scroll-bar {
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--color-sky-500) #f0f0f0 !important;
+}
+
+@theme {
+  /* linear theme */
+  --color-linear-primary: var(--color-purple-600);
+  --color-linear-secondary: var(--color-pink-600);
+
+  --color-profile-linear-primary: #a100ff;
+  --color-profile-linear-secondary: #ff00e5;
+
+  --color-border-primary: var(--color-purple-100);
+
+  --color-backdrop-linear-primary: var(--color-purple-50);
+  --color-backdrop-linear-secondary: var(--color-pink-50);
+
+  --color-hover-bg: var(--color-purple-50);
+
+  /* icon color */
+  --color-icon-primary: var(--color-purple-600);
+  --color-icon-secondary: var(--color-purple-500);
+
+  --color-icon-bg-primary: var(--color-purple-200);
+
+  /* file upload */
+  --color-file-upload-hover-bg: var(--color-purple-400);
+
+  --color-file-upload-border: var(--color-purple-200);
+  --color-file-upload-hover-border: var(--color-purple-400);
+
+  --color-enterprise-bg: var(--color-indigo-300);
+  --color-enterprise-border: var(--color-indigo-300);
+
+  --color-enterprise-login-bg: var(--color-indigo-600);
+  --color-enterprise-login-border: var(--color-indigo-400);
+
+  --color-submit-button-linear-primary: #a100ff;
+  --color-submit-button-linear-secondary: #ff00e5;
+
+  /* Analysis Results */
+
+  --color-title-primary: var(--color-purple-600);
+
+  --color-export-action-button: var(--color-purple-700);
+  --color-export-action-button-bg: var(--color-purple-100);
+  --color-export-action-button-hover: var(--color-purple-200);
+
+  --color-first-stat-card-linear-primary: var(--color-purple-500);
+  --color-first-stat-card-linear-secondary: var(--color-purple-600);
+  --color-first-stat-card-label-color: var(--color-purple-100);
+
+  --color-last-stat-card-linear-primary: var(--color-blue-500);
+  --color-last-stat-card-linear-secondary: var(--color-blue-600);
+  --color-last-stat-card-label-color: var(--color-purple-100);
+
+  --color-clause-primary: var(--color-indigo-500);
+  --color-clause-border-primary: var(--color-indigo-300);
+  --color-clause-border-primary-bg: var(--color-indigo-500);
+
+  --color-obli-primary-bg: var(--color-indigo-50);
+  --color-obli-border-primary: var(--color-indigo-600);
+
+  --color-tabs-title-primary: var(--color-indigo-600);
+}
+
+.bank {
+  /* linear theme */
+  --color-linear-primary: var(--color-blue-500);
+  --color-linear-secondary: var(--color-cyan-600);
+
+  --color-profile-linear-primary: var(--color-blue-500);
+  --color-profile-linear-secondary: var(--color-cyan-600);
+
+  --color-border-primary: var(--color-blue-100);
+
+  --color-backdrop-linear-primary: var(--color-blue-50);
+  --color-backdrop-linear-secondary: var(--color-cyan-50);
+
+  --color-hover-bg: var(--color-cyan-50);
+
+  /* icon color */
+  --color-icon-primary: var(--color-cyan-700);
+  --color-icon-secondary: var(--color-cyan-500);
+
+  --color-icon-bg-primary: var(--color-cyan-200);
+
+  /* file upload */
+  --color-file-upload-hover-bg: var(--color-cyan-400);
+
+  --color-file-upload-border: var(--color-blue-200);
+  --color-file-upload-hover-border: var(--color-blue-400);
+
+  --color-enterprise-bg: var(--color-blue-200);
+  --color-enterprise-border: var(--color-cyan-200);
+
+  --color-enterprise-login-bg: var(--color-blue-700);
+  --color-enterprise-login-border: var(--color-cyan-700);
+
+  --color-submit-button-linear-primary: var(--color-blue-700);
+  --color-submit-button-linear-secondary: var(--color-cyan-700);
+
+  /* Analysis Results */
+
+  --color-title-primary: var(--color-blue-600);
+
+  --color-export-action-button: var(--color-blue-700);
+  --color-export-action-button-bg: var(--color-blue-100);
+  --color-export-action-button-hover: var(--color-blue-200);
+
+  --color-first-stat-card-linear-primary: var(--color-blue-600);
+  --color-first-stat-card-linear-secondary: var(--color-blue-400);
+  --color-first-stat-card-label-color: var(--color-blue-100);
+
+  --color-last-stat-card-linear-primary: var(--color-cyan-600);
+  --color-last-stat-card-linear-secondary: var(--color-cyan-400);
+  --color-last-stat-card-label-color: var(--color-cyan-100);
+
+  --color-clause-primary: var(--color-blue-500);
+  --color-clause-border-primary: var(--color-blue-300);
+  --color-clause-border-primary-bg: var(--color-blue-600);
+
+  --color-obli-primary-bg: var(--color-blue-50);
+  --color-obli-border-primary: var(--color-blue-600);
+}

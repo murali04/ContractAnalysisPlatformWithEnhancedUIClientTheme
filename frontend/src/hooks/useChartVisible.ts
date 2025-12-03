@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 export const useChartVisible = (threshold = 0.4) => {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -11,7 +11,7 @@ export const useChartVisible = (threshold = 0.4) => {
           setVisible(true); // chart is visible → start animation
         }
       },
-      { threshold }
+      { threshold },
     );
 
     if (ref.current) observer.observe(ref.current);

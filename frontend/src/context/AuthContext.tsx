@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // 1️⃣ Define context
 interface AuthContextType {
@@ -11,9 +11,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // 2️⃣ Provider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [username, setUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,41 +19,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Load username from localStorage on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("username");
+    const storedUser = localStorage.getItem('username');
     if (storedUser) {
       setLoading(false);
       setUsername(storedUser);
-      navigate("/");
+      navigate('/');
     } else {
       setLoading(false);
-      navigate("/login");
+      navigate('/login');
     }
   }, []);
 
   // Login function
   const login = (user: string) => {
-    localStorage.setItem("username", user);
+    localStorage.setItem('username', user);
     setLoading(false);
     setUsername(user);
-    navigate("/");
+    navigate('/');
   };
 
   // Logout function
   const logout = () => {
-    localStorage.removeItem("username");
+    localStorage.removeItem('username');
     setUsername(null);
-    navigate("/login");
+    navigate('/login');
   };
 
   return (
     <AuthContext.Provider value={{ username, login, logout }}>
       {loading ? (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-9999 text-white px-6">
+        <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-9999 text-white px-6'>
           {/* Simple Purple Spinner */}
-          <div className="border-white h-12 w-12 animate-spin rounded-full border-4 border-t-purple-500 mb-4"></div>
+          <div className='border-white h-12 w-12 animate-spin rounded-full border-4 border-t-purple-500 mb-4'></div>
 
           {/* Text */}
-          <p className="text-lg font-medium tracking-wide">Loading...</p>
+          <p className='text-lg font-medium tracking-wide'>Loading...</p>
         </div>
       ) : (
         children
@@ -68,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

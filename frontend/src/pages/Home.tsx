@@ -1,8 +1,8 @@
-import axios from "axios";
-import { useState } from "react";
-import { AnalysisResults } from "../components/AnalysisResults";
-import { FileUpload } from "../components/FileUpload";
-import { ProgressBar } from "../components/reusable/ProgressBar";
+import axios from 'axios';
+import { useState } from 'react';
+import { AnalysisResults } from '../components/AnalysisResults';
+import { FileUpload } from '../components/FileUpload';
+import { ProgressBar } from '../components/reusable/ProgressBar';
 
 export const Home = () => {
   const [excelFile, setExcelFile] = useState<File | null>(null);
@@ -14,7 +14,7 @@ export const Home = () => {
 
   const handleAnalyze = async () => {
     if (!excelFile || !pdfFile) {
-      alert("Please upload both Excel and PDF files");
+      alert('Please upload both Excel and PDF files');
       return;
     }
 
@@ -29,13 +29,13 @@ export const Home = () => {
 
     try {
       const formData = new FormData();
-      formData.append("obligations_file", excelFile);
-      formData.append("contract_file", pdfFile);
-      formData.append("use_batch", "true");
+      formData.append('obligations_file', excelFile);
+      formData.append('contract_file', pdfFile);
+      formData.append('use_batch', 'true');
 
-      const res = await axios.post("http://localhost:8000/api/analyze/enhanced", formData, {
+      const res = await axios.post('http://localhost:8000/api/analyze/enhanced', formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       });
       console.log(res.data);
@@ -49,7 +49,7 @@ export const Home = () => {
       console.log(err);
       clearInterval(interval);
       setIsAnalyzing(false);
-      alert("Analysis failed. Please try again.");
+      alert('Analysis failed. Please try again.');
     }
   };
 
@@ -67,7 +67,7 @@ export const Home = () => {
       {isAnalyzing && <ProgressBar progress={progress} />}
 
       {/* Upload Section */}
-      <div className="">
+      <div className=''>
         <FileUpload
           excelFile={excelFile}
           pdfFile={pdfFile}
@@ -82,7 +82,7 @@ export const Home = () => {
 
       {/* Analysis Results */}
       {!isAnalyzing && showResults && analysisData && (
-        <div className="mt-8">
+        <div className='mt-8'>
           <AnalysisResults pdfFile={pdfFile} analysisData={analysisData} />
         </div>
       )}

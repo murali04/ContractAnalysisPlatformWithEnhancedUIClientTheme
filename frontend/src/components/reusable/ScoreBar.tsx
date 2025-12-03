@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export function ScoreBar({ percentage }: any) {
-  const [width, setWidth] = useState("0%");
+  const [width, setWidth] = useState('0%');
 
   useEffect(() => {
     setTimeout(() => {
@@ -10,12 +10,12 @@ export function ScoreBar({ percentage }: any) {
   }, [percentage]);
 
   return (
-    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+    <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden'>
       <div
-        className="h-2 rounded-full transition-all duration-3000 ease-out"
+        className='h-2 rounded-full transition-all duration-3000 ease-out'
         style={{
           width: width,
-          backgroundColor: "#A100FF",
+          backgroundColor: '#A100FF',
         }}
       />
     </div>
