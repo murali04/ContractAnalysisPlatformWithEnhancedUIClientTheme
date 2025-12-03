@@ -1,22 +1,18 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect } from 'react';
 // Import the main component
-import { Viewer, Worker } from "@react-pdf-viewer/core";
-import { highlightPlugin, Trigger } from "@react-pdf-viewer/highlight";
-import { searchPlugin } from "@react-pdf-viewer/search";
-import { toolbarPlugin } from "@react-pdf-viewer/toolbar";
-import { Progress } from "../reusable/Progress";
+import { Viewer, Worker } from '@react-pdf-viewer/core';
+import { highlightPlugin, Trigger } from '@react-pdf-viewer/highlight';
+import { searchPlugin } from '@react-pdf-viewer/search';
+import { toolbarPlugin } from '@react-pdf-viewer/toolbar';
+import { Progress } from '../reusable/Progress';
 
 // Import the styles
-import "@react-pdf-viewer/core/lib/styles/index.css";
-import "@react-pdf-viewer/search/lib/styles/index.css";
-import "@react-pdf-viewer/toolbar/lib/styles/index.css";
-import "./pdf.css";
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/search/lib/styles/index.css';
+import '@react-pdf-viewer/toolbar/lib/styles/index.css';
+import './pdf.css';
 
-export const PdfViewer = ({
-  url,
-  selectedClause,
-  defaultScale = 0.75,
-}: any) => {
+export const PdfViewer = ({ url, selectedClause, defaultScale = 0.75 }: any) => {
   const highlightPluginInstance = highlightPlugin({
     trigger: Trigger.None,
   });
@@ -33,7 +29,7 @@ export const PdfViewer = ({
         .split(/\r?\n/) // splits on \n or \r\n
         .map((line) => line.trim()) // optional: remove leading/trailing spaces
         .filter((line) => line.length > 0), // remove empty lines
-    []
+    [],
   );
 
   useEffect(() => {
@@ -46,12 +42,12 @@ export const PdfViewer = ({
 
   if (!url) return null;
   return (
-    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+    <Worker workerUrl='https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js'>
       <div
         style={{
-          borderBottom: "1px solid #ccc",
-          padding: "4px",
-          background: "#f8f8f8",
+          borderBottom: '1px solid #ccc',
+          padding: '4px',
+          background: '#f8f8f8',
         }}
       >
         <Toolbar />
@@ -60,15 +56,11 @@ export const PdfViewer = ({
         defaultScale={defaultScale}
         fileUrl={url}
         renderLoader={(percentages: number) => (
-          <div style={{ width: "240px" }}>
+          <div style={{ width: '240px' }}>
             <Progress progress={Math.round(percentages)} />
           </div>
         )}
-        plugins={[
-          highlightPluginInstance,
-          toolbarPluginInstance,
-          searchPluginInstance,
-        ]}
+        plugins={[highlightPluginInstance, toolbarPluginInstance, searchPluginInstance]}
       />
     </Worker>
   );

@@ -3,16 +3,16 @@
 }
 
 /* override active (green) highlight for compliance */
-.pdf-highlight-compliance [class="rpv-search__highlight"],
+.pdf-highlight-compliance [class='rpv-search__highlight'],
 .pdf-highlight-compliance .rpv-search__highlight--current {
   background-color: #15ff002d !important;
   color: black !important;
 }
 
 /* override active (green) highlight for non compliance */
-.pdf-highlight-non-compliance [class="rpv-search__highlight"],
+.pdf-highlight-non-compliance [class='rpv-search__highlight'],
 .pdf-highlight-non-compliance .rpv-search__highlight--current,
-[class="rpv-search__highlight"] {
+[class='rpv-search__highlight'] {
   background-color: #f13d3d5b !important;
   color: black !important;
 }
