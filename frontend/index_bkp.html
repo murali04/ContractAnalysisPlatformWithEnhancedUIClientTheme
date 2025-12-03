@@ -1,0 +1,628 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contract Intelligence · Unified Platform</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 15px rgba(79, 70, 229, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+
+    <!-- Prop Types -->
+    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+
+    <!-- Recharts -->
+    <script src="https://unpkg.com/recharts@2.10.3/umd/Recharts.js"></script>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .tooltip-custom {
+            z-index: 100;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root" class="h-screen w-screen overflow-hidden flex flex-col"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+        const {
+            BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip: ReTooltip, Cell, ResponsiveContainer,
+            PieChart, Pie
+        } = Recharts;
+
+        /* --- Icons --- */
+        const Icon = ({ name, size = 18, className = "" }) => {
+            const [svg, setSvg] = useState(null);
+
+            useEffect(() => {
+                const loadIcon = () => {
+                    if (window.lucide && window.lucide.icons && window.lucide.icons[name]) {
+                        setSvg(window.lucide.icons[name].toSvg({
+                            width: size,
+                            height: size,
+                            class: className,
+                            "stroke-width": 2
+                        }));
+                        return true;
+                    }
+                    return false;
+                };
+
+                if (!loadIcon()) {
+                    const interval = setInterval(() => {
+                        if (loadIcon()) clearInterval(interval);
+                    }, 50);
+                    const timeout = setTimeout(() => clearInterval(interval), 3000);
+                    return () => { clearInterval(interval); clearTimeout(timeout); };
+                }
+            }, [name, size, className]);
+
+            if (!svg) return <span style={{ width: size, height: size }} className="bg-slate-100/50 rounded block animate-pulse"></span>;
+            return <span dangerouslySetInnerHTML={{ __html: svg }} className="flex items-center justify-center" />;
+        };
+
+        /* --- Components --- */
+
+        const GaugeChart = ({ score }) => {
+            const data = [
+                { name: 'Score', value: score, fill: '#4f46e5' },
+                { name: 'Rest', value: 100 - score, fill: '#e2e8f0' }
+            ];
+
+            return (
+                <div className="relative h-full w-full flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={data}
+                                cx="50%"
+                                cy="75%"
+                                startAngle={180}
+                                endAngle={0}
+                                innerRadius="70%"
+                                outerRadius="100%"
+                                paddingAngle={0}
+                                dataKey="value"
+                                stroke="none"
+                            >
+                                <Cell key="score" fill="url(#gaugeGradient)" />
+                                <Cell key="rest" fill="#f1f5f9" />
+                            </Pie>
+                            <defs>
+                                <linearGradient id="gaugeGradient" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stopColor="#4f46e5" />
+                                    <stop offset="100%" stopColor="#818cf8" />
+                                </linearGradient>
+                            </defs>
+                        </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute bottom-0 flex flex-col items-center translate-y-1">
+                        <span className="text-2xl font-bold text-slate-800 leading-none">{score}%</span>
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Health</span>
+                    </div>
+                </div>
+            );
+        };
+
+        const StatCard = ({ label, value, icon, color = "indigo" }) => {
+            const colors = {
+                indigo: "bg-indigo-50 text-indigo-600",
+                emerald: "bg-emerald-50 text-emerald-600",
+                rose: "bg-rose-50 text-rose-600",
+                slate: "bg-slate-50 text-slate-600"
+            };
+            return (
+                <div className="bg-white rounded-xl border border-slate-100 p-3 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colors[color]}`}>
+                        <Icon name={icon} size={20} />
+                    </div>
+                    <div>
+                        <div className="text-xs text-slate-500 font-medium uppercase tracking-wide">{label}</div>
+                        <div className="text-xl font-bold text-slate-800 leading-none mt-0.5">{value}</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const StatusBadge = ({ status }) => {
+            const config = {
+                'Yes': { bg: 'bg-emerald-100/50', text: 'text-emerald-700', border: 'border-emerald-200', label: 'COMPLIANT', icon: 'CheckCircle' },
+                'No': { bg: 'bg-rose-100/50', text: 'text-rose-700', border: 'border-rose-200', label: 'NON-COMPLIANT', icon: 'AlertCircle' }
+            };
+            const s = config[status] || { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', label: status, icon: 'HelpCircle' };
+
+            return (
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${s.bg} ${s.text} ${s.border}`}>
+                    <Icon name={s.icon} size={10} />
+                    {s.label}
+                </span>
+            );
+        };
+
+        const UserMenu = ({ username, onSignOut }) => {
+            const [open, setOpen] = useState(false);
+            return (
+                <div className="relative">
+                    <button onClick={() => setOpen(!open)} className="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded-lg transition-colors border border-transparent hover:border-slate-200">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                            {username.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="text-left hidden md:block">
+                            <div className="text-xs font-bold text-slate-700">{username}</div>
+                            <div className="text-[10px] text-slate-500">Legal Analyst</div>
+                        </div>
+                        <Icon name="ChevronDown" size={14} className="text-slate-400" />
+                    </button>
+
+                    {open && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}></div>
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-50 py-1 animate-fade-in">
+                                <div className="px-4 py-2 border-b border-slate-50">
+                                    <p className="text-xs font-medium text-slate-500">Signed in as</p>
+                                    <p className="text-sm font-bold text-slate-800 truncate">{username}</p>
+                                </div>
+                                <button onClick={onSignOut} className="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 flex items-center gap-2">
+                                    <Icon name="LogOut" size={14} /> Sign Out
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        const NameInputModal = ({ onSubmit }) => {
+            const [name, setName] = useState('');
+            return (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-fade-in">
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-600">
+                                <Icon name="ShieldCheck" size={32} />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-800">Welcome</h2>
+                            <p className="text-slate-500">Contract Analysis Platform</p>
+                        </div>
+                        <form onSubmit={(e) => { e.preventDefault(); if (name.trim()) onSubmit(name.trim()); }}>
+                            <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="Enter your name" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none mb-4" />
+                            <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-200">
+                                Continue to Dashboard
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        /* --- Main Application --- */
+
+        const App = () => {
+            const [username, setUsername] = useState(localStorage.getItem('contract_platform_username') || '');
+            const [files, setFiles] = useState({ obligations: null, contract: null });
+            const [isAnalyzing, setIsAnalyzing] = useState(false);
+            const [analysisData, setAnalysisData] = useState(null);
+            const [selectedObligation, setSelectedObligation] = useState(null);
+            const [activeTab, setActiveTab] = useState('details');
+            const [showUpload, setShowUpload] = useState(true);
+
+            // Initial Icon Load Check
+            useEffect(() => {
+                const t = setInterval(() => { if (window.lucide) clearInterval(t); }, 100);
+                return () => clearInterval(t);
+            }, []);
+
+            const handleAnalyze = async () => {
+                if (!files.obligations || !files.contract) return;
+                setIsAnalyzing(true);
+                setShowUpload(false); // Collapse upload on start
+
+                const form = new FormData();
+                form.append('obligations_file', files.obligations);
+                form.append('contract_file', files.contract);
+
+                try {
+                    const res = await fetch('/api/analyze', { method: 'POST', body: form });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        setAnalysisData(data);
+                        if (data.results?.length > 0) {
+                            setSelectedObligation(data.results[0]);
+                        }
+                    } else {
+                        alert('Error: ' + (data.message || 'Unknown'));
+                        setShowUpload(true);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Analysis failed. Check backend.');
+                    setShowUpload(true);
+                } finally {
+                    setIsAnalyzing(false);
+                }
+            };
+
+            const metrics = useMemo(() => {
+                if (!analysisData?.results) return { total: 0, compliant: 0, nonCompliant: 0, score: 0, chartData: [] };
+                const total = analysisData.results.length;
+                const compliant = analysisData.results.filter(r => r.is_present === 'Yes').length;
+                const nonCompliant = total - compliant;
+                const score = Math.round((compliant / total) * 100) || 0;
+                return {
+                    total, compliant, nonCompliant, score,
+                    chartData: [
+                        { name: 'Compliant', value: compliant, fill: '#10b981' },
+                        { name: 'Non-Compliant', value: nonCompliant, fill: '#f43f5e' }
+                    ]
+                };
+            }, [analysisData]);
+
+            if (!username) return <NameInputModal onSubmit={(n) => { localStorage.setItem('contract_platform_username', n); setUsername(n); }} />;
+
+            return (
+                <div className="flex flex-col h-screen bg-slate-50">
+                    {/* --- Header --- */}
+                    <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 z-30">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                                <Icon name="ShieldCheck" size={20} />
+                            </div>
+                            <div>
+                                <h1 className="font-display font-bold text-slate-800 text-lg leading-tight">ContractIntel</h1>
+                                <p className="text-[10px] text-slate-400 font-medium tracking-wide uppercase">Enterprise Guardrails</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            {analysisData && (
+                                <button onClick={() => setShowUpload(!showUpload)} className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                                    <Icon name={showUpload ? "ChevronUp" : "Plus"} size={14} />
+                                    {showUpload ? "Hide Upload" : "New Analysis"}
+                                </button>
+                            )}
+                            <div className="h-6 w-px bg-slate-200 mx-2"></div>
+                            <UserMenu username={username} onSignOut={() => { localStorage.removeItem('contract_platform_username'); window.location.reload(); }} />
+                        </div>
+                    </header>
+
+                    {/* --- Main Content Area --- */}
+                    <main className="flex-1 overflow-hidden flex flex-col p-4 md:p-6 gap-6">
+
+                        {/* Top Section: Dashboard & Upload */}
+                        <div className={`shrink-0 grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300 ease-in-out ${showUpload || !analysisData ? 'opacity-100' : 'hidden opacity-0'}`}>
+
+                            {/* Upload Card */}
+                            <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                                <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                    <Icon name="UploadCloud" size={16} className="text-indigo-500" /> Analysis Setup
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div onClick={() => document.getElementById('ob-file').click()}
+                                        className={`p-4 rounded-xl border-2 border-dashed cursor-pointer transition-all ${files.obligations ? 'border-emerald-400 bg-emerald-50/30' : 'border-slate-200 hover:border-indigo-400 hover:bg-slate-50'}`}>
+                                        <div className="flex flex-col items-center text-center gap-2">
+                                            <div className={`p-2 rounded-lg ${files.obligations ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                                                <Icon name={files.obligations ? "Check" : "List"} size={20} />
+                                            </div>
+                                            <div className="text-xs font-medium text-slate-700 truncate w-full">{files.obligations?.name || "Obligations (.csv)"}</div>
+                                        </div>
+                                        <input id="ob-file" type="file" hidden accept=".csv,.xlsx" onChange={e => setFiles({ ...files, obligations: e.target.files[0] })} />
+                                    </div>
+
+                                    <div onClick={() => document.getElementById('con-file').click()}
+                                        className={`p-4 rounded-xl border-2 border-dashed cursor-pointer transition-all ${files.contract ? 'border-emerald-400 bg-emerald-50/30' : 'border-slate-200 hover:border-indigo-400 hover:bg-slate-50'}`}>
+                                        <div className="flex flex-col items-center text-center gap-2">
+                                            <div className={`p-2 rounded-lg ${files.contract ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                                                <Icon name={files.contract ? "Check" : "FileText"} size={20} />
+                                            </div>
+                                            <div className="text-xs font-medium text-slate-700 truncate w-full">{files.contract?.name || "Contract (.pdf)"}</div>
+                                        </div>
+                                        <input id="con-file" type="file" hidden accept=".pdf,.docx,.txt" onChange={e => setFiles({ ...files, contract: e.target.files[0] })} />
+                                    </div>
+                                </div>
+                                <button
+                                    disabled={!files.obligations || !files.contract || isAnalyzing}
+                                    onClick={handleAnalyze}
+                                    className={`w-full mt-4 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${files.obligations && files.contract ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:translate-y-[-1px]' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
+                                >
+                                    {isAnalyzing ? <Icon name="Loader2" className="animate-spin" /> : <Icon name="Sparkles" />}
+                                    {isAnalyzing ? 'Processing...' : 'Run Analysis'}
+                                </button>
+                            </div>
+
+                            {/* Stats Dashboard (Only visible if data exists) */}
+                            {analysisData && (
+                                <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {/* Gauge */}
+                                    <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
+                                        <div className="absolute top-3 left-3 text-xs font-bold text-slate-400 uppercase">Score</div>
+                                        <div className="h-24 w-full mt-2">
+                                            <GaugeChart score={metrics.score} />
+                                        </div>
+                                    </div>
+
+                                    {/* Bar Chart */}
+                                    <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col">
+                                        <div className="text-xs font-bold text-slate-400 uppercase mb-2">Distribution</div>
+                                        <div className="flex-1 min-h-[80px]">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart data={metrics.chartData}>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                                    <XAxis dataKey="name" hide />
+                                                    <ReTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                                        {metrics.chartData.map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                        ))}
+                                                    </Bar>
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+
+                                    {/* Key Metrics */}
+                                    <div className="flex flex-col gap-3">
+                                        <StatCard label="Total Items" value={metrics.total} icon="List" color="slate" />
+                                        <StatCard label="Issues Found" value={metrics.nonCompliant} icon="AlertTriangle" color="rose" />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Bottom Section: Analysis Workspace */}
+                        {analysisData ? (
+                            <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in">
+
+                                {/* Pane 1: Obligations List (3 cols) */}
+                                <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                                    <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Obligations</h3>
+                                        <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-600">{metrics.total}</span>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto">
+                                        {analysisData.results.map((item, idx) => (
+                                            <div
+                                                key={idx}
+                                                onClick={() => setSelectedObligation(item)}
+                                                className={`p-4 border-b border-slate-50 cursor-pointer transition-colors hover:bg-slate-50 group ${selectedObligation === item ? 'bg-indigo-50/60 border-l-4 border-l-indigo-500' : 'border-l-4 border-l-transparent'}`}
+                                            >
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <StatusBadge status={item.is_present} />
+                                                    <span className="text-[10px] text-slate-400 font-mono group-hover:text-indigo-500">Pg {item.page || '-'}</span>
+                                                </div>
+                                                <p className={`text-xs leading-relaxed line-clamp-3 ${selectedObligation === item ? 'text-slate-800 font-medium' : 'text-slate-600'}`}>
+                                                    {item.obligation}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Pane 2: Document Preview (5 cols) */}
+                                <div className="lg:col-span-5 bg-slate-800 rounded-2xl border border-slate-700 shadow-lg flex flex-col overflow-hidden relative">
+                                    <div className="absolute top-0 left-0 right-0 h-10 bg-slate-900/80 backdrop-blur flex items-center justify-between px-4 z-10 border-b border-slate-700/50">
+                                        <span className="text-xs font-medium text-slate-300 flex items-center gap-2"><Icon name="FileText" size={14} /> Contract Preview</span>
+                                        {analysisData.contract_url && <a href={analysisData.contract_url} target="_blank" className="text-[10px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1">Open External <Icon name="ExternalLink" size={10} /></a>}
+                                    </div>
+                                    <div className="flex-1 pt-10 bg-slate-100 overflow-hidden">
+                                        {analysisData.contract_url?.toLowerCase().endsWith('.pdf') ? (
+                                            <iframe src={`${analysisData.contract_url}#page=${selectedObligation?.page || 1}&toolbar=0&navpanes=0`} className="w-full h-full border-none" />
+                                        ) : (
+                                            <div className="p-6 overflow-auto h-full font-mono text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
+                                                {analysisData.full_text || "No text content available."}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Pane 3: Details Analysis (4 cols) */}
+                                <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                                    {selectedObligation ? (
+                                        <>
+                                            <div className="p-5 border-b border-slate-100 bg-slate-50/30">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <StatusBadge status={selectedObligation.is_present} />
+                                                    <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Analysis Report</span>
+                                                </div>
+                                                <h2 className="text-sm font-bold text-slate-800 leading-snug">{selectedObligation.obligation}</h2>
+                                            </div>
+
+                                            <div className="flex border-b border-slate-100">
+                                                {['details', 'evidence', 'recommendation'].map(tab => (
+                                                    <button
+                                                        key={tab}
+                                                        onClick={() => setActiveTab(tab)}
+                                                        className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors ${activeTab === tab ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/30' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                                                    >
+                                                        {tab}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            <div className="flex-1 overflow-y-auto p-5 bg-white">
+                                                {activeTab === 'details' && (
+                                                    <div className="space-y-6">
+                                                        <div>
+                                                            <h4 className="text-xs font-bold text-slate-900 mb-3 flex items-center gap-2"><Icon name="BrainCircuit" size={14} className="text-indigo-500" /> AI Reasoning</h4>
+                                                            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                                                {selectedObligation.reason}
+                                                            </p>
+                                                        </div>
+
+                                                        <div>
+                                                            <h4 className="text-xs font-bold text-slate-900 mb-3 flex items-center gap-2"><Icon name="ListChecks" size={14} className="text-indigo-500" /> Validation Steps</h4>
+                                                            <div className="space-y-2">
+                                                                {selectedObligation.cot_steps?.map((step, i) => (
+                                                                    <div key={i} className={`p-2.5 rounded-lg border text-xs flex items-start gap-3 ${step.status === 'PASS' ? 'bg-emerald-50/50 border-emerald-100 text-emerald-800' : step.status === 'FAIL' ? 'bg-rose-50/50 border-rose-100 text-rose-800' : 'bg-slate-50 border-slate-100 text-slate-700'}`}>
+                                                                        <div className="mt-0.5"><Icon name={step.status === 'PASS' ? 'CheckCircle' : step.status === 'FAIL' ? 'XCircle' : 'AlertCircle'} size={14} /></div>
+                                                                        <div className="flex-1">
+                                                                            <div className="font-semibold flex justify-between">
+                                                                                {step.step_name}
+                                                                                {step.is_critical && <span className="text-[9px] border border-current px-1 rounded opacity-70">CRITICAL</span>}
+                                                                            </div>
+                                                                            <div className="mt-1 opacity-80 leading-snug">{step.finding}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {activeTab === 'evidence' && (
+                                                    <div className="space-y-4">
+                                                        {selectedObligation.supporting_clauses?.length > 0 ? selectedObligation.supporting_clauses.map((clause, i) => (
+                                                            <div key={i} className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100">
+                                                                <div className="text-[10px] font-bold text-indigo-500 uppercase mb-2">Extracted Clause {i + 1}</div>
+                                                                <p className="text-xs text-slate-700 italic leading-relaxed">"{clause}"</p>
+                                                            </div>
+                                                        )) : (
+                                                            <div className="text-center py-10 text-slate-400">
+                                                                <Icon name="FileSearch" size={32} className="mx-auto mb-2 opacity-50" />
+                                                                <p className="text-xs">No specific clauses extracted.</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {activeTab === 'recommendation' && (
+                                                    <div className="h-full">
+                                                        {selectedObligation.suggestion ? (
+                                                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 h-full">
+                                                                <h4 className="text-xs font-bold text-amber-700 mb-3 flex items-center gap-2"><Icon name="Lightbulb" size={14} /> Suggestion</h4>
+                                                                <p className="text-xs text-amber-800 leading-relaxed">{selectedObligation.suggestion}</p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-col items-center justify-center h-40 text-slate-400">
+                                                                <Icon name="CheckCircle" size={40} className="text-emerald-400 mb-3" />
+                                                                <p className="text-xs">No suggestions. Obligation appears compliant.</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-slate-300">
+                                            <Icon name="MousePointerClick" size={48} className="mb-4 opacity-50" />
+                                            <p className="text-sm font-medium">Select an obligation to view details</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            /* Empty State Placeholder if no analysis yet */
+                            !isAnalyzing && (
+                                <div className="flex-1 flex items-center justify-center opacity-50">
+                                    <div className="text-center max-w-md">
+                                        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                                            <Icon name="LayoutDashboard" size={40} />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-400">Ready to Analyze</h3>
+                                        <p className="text-slate-400 text-sm mt-2">Upload your documents above to generate the unified dashboard.</p>
+                                    </div>
+                                </div>
+                            )
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
