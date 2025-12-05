@@ -188,9 +188,12 @@ def analyze_contract_enhanced(
     else:
         records = extract_text_from_txt(contract_file_bytes)
     
-    # Translate contract text
+    # MULTILINGUAL FIX: Preserve original text before translation
+    # Store both original and translated text for dual-track processing
     for rec in records:
-        rec["text"] = translate_to_english(rec["text"]).strip()
+        rec["text_original"] = rec["text"]  # Preserve original
+        rec["text_translated"] = translate_to_english(rec["text"]).strip()  # Translate for analysis
+        rec["text"] = rec["text_translated"]  # Backward compatibility
     
     # 3. Build Vector Store
     docs = chunk_text(records)
@@ -201,7 +204,7 @@ def analyze_contract_enhanced(
     auto_keywords = generate_dynamic_keywords(obligations)
     
     # 5. Generate contract hash for caching
-    full_text = "\\n\\n".join([r["text"] for r in records])
+    full_text = "\\n\\n".join([r["text_translated"] for r in records])
     contract_hash_val = hash_contract(full_text)
     
     # 6. Run Analysis (batch or sequential)

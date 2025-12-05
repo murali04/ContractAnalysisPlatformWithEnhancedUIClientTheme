@@ -146,8 +146,8 @@ export function TabsPanel({
                           key={i}
                           onClick={() => toggleStep(i)}
                           className={`p-2.5 rounded-lg border text-xs flex items-start gap-3 cursor-pointer transition-all duration-200 hover:shadow-sm ${step.status === "FAIL"
-                              ? "bg-rose-50/50 border-rose-100 text-rose-800"
-                              : "bg-emerald-50/50 border-emerald-100 text-emerald-800"
+                            ? "bg-rose-50/50 border-rose-100 text-rose-800"
+                            : "bg-emerald-50/50 border-emerald-100 text-emerald-800"
                             }`}
                         >
                           <div className="mt-0.5 shrink-0">
@@ -192,8 +192,8 @@ export function TabsPanel({
                             {isExpanded && (
                               <div
                                 className={`mt-1.5 text-[11px] leading-relaxed opacity-90 font-normal border-t pt-1.5 ${step.status === "FAIL"
-                                    ? "border-rose-200/50"
-                                    : "border-emerald-200/50"
+                                  ? "border-rose-200/50"
+                                  : "border-emerald-200/50"
                                   }`}
                               >
                                 {step.finding}
@@ -215,36 +215,41 @@ export function TabsPanel({
                   {selectedObligation.supporting_clauses &&
                     selectedObligation.supporting_clauses.length > 0 ? (
                     selectedObligation.supporting_clauses.map(
-                      (clause: string, i: number) => (
-                        <button
-                          key={i}
-                          className={`group relative p-4 rounded-xl cursor-pointer transition-all duration-300 block w-full scale-98
-      ${selectedClause === clause
-                              ? "bg-white border-l-4 border-green-500 scale-100 shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
-                              : "bg-white/70 hover:bg-white hover:shadow-md border-l-4 border-indigo-300 hover:border-indigo-500"
-                            }`}
-                          onClick={() => changeClause(clause)}
-                        >
-                          <div className="flex justify-between mb-2">
-                            <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">
-                              Clause Reference {i + 1}
-                            </span>
+                      (clause: string, i: number) => {
+                        // Get corresponding original clause for PDF highlighting
+                        const originalClause = selectedObligation.supporting_clauses_original?.[i] || clause;
 
-                            <CheckCircle
-                              height={30}
-                              width={30}
-                              className={`${selectedClause === clause
-                                ? "text-green-600"
-                                : "text-gray-400"
-                                } transition-all duration-300 group-hover:scale-110 absolute right-5`}
-                            />
-                          </div>
+                        return (
+                          <button
+                            key={i}
+                            className={`group relative p-4 rounded-xl cursor-pointer transition-all duration-300 block w-full scale-98
+      ${selectedClause === originalClause
+                                ? "bg-white border-l-4 border-green-500 scale-100 shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
+                                : "bg-white/70 hover:bg-white hover:shadow-md border-l-4 border-indigo-300 hover:border-indigo-500"
+                              }`}
+                            onClick={() => changeClause(originalClause)}
+                          >
+                            <div className="flex justify-between mb-2">
+                              <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">
+                                Clause Reference {i + 1}
+                              </span>
 
-                          <p className="text-sm text-slate-600 italic pt-1 text-left">
-                            "{clause}"
-                          </p>
-                        </button>
-                      )
+                              <CheckCircle
+                                height={30}
+                                width={30}
+                                className={`${selectedClause === originalClause
+                                  ? "text-green-600"
+                                  : "text-gray-400"
+                                  } transition-all duration-300 group-hover:scale-110 absolute right-5`}
+                              />
+                            </div>
+
+                            <p className="text-sm text-slate-600 italic pt-1 text-left">
+                              "{clause}"
+                            </p>
+                          </button>
+                        );
+                      }
                     )
                   ) : (
                     <div className="text-center py-12 text-slate-400 text-sm flex flex-col items-center">

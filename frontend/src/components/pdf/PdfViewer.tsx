@@ -31,7 +31,11 @@ export const PdfViewer = ({
     (text: string) =>
       text
         .split(/\r?\n/) // splits on \n or \r\n
-        .map((line) => line.trim()) // optional: remove leading/trailing spaces
+        .map((line) => {
+          // Strip [Page X Line Y] prefix if present
+          const cleanedLine = line.replace(/^\[Page \d+ Line \d+\]\s*/, '').trim();
+          return cleanedLine;
+        })
         .filter((line) => line.length > 0), // remove empty lines
     []
   );

@@ -157,39 +157,46 @@ def extract_text_from_txt(file_bytes):
 def chunk_text(records):
     # CRITICAL FIX: Group text by page first to avoid fragmenting into single lines
     # Also preserve line number information for each chunk with accurate tracking
-    pages = {}
+    # MULTILINGUAL FIX: Preserve both original and translated text for PDF highlighting
+    pages_translated = {}
+    pages_original = {}
     page_line_map = {}  # Track line numbers for each page
     
     for rec in records:
         p = rec.get("page", 1)
         line = rec.get("line", 1)
         
-        if p not in pages:
-            pages[p] = []
+        if p not in pages_translated:
+            pages_translated[p] = []
+            pages_original[p] = []
             page_line_map[p] = []
         
-        pages[p].append(rec["text"])
+        # Use translated text for chunking (RAG analysis)
+        # But preserve original text for PDF highlighting
+        pages_translated[p].append(rec.get("text_translated", rec.get("text", "")))
+        pages_original[p].append(rec.get("text_original", rec.get("text", "")))
         page_line_map[p].append(line)
         
     splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=300)
     docs = []
     
-    for page_num, lines in pages.items():
-        # Reconstruct page text with line tracking
-        page_text = "\n".join(lines)
+    for page_num in pages_translated.keys():
+        # Reconstruct page text with line tracking (use translated for chunking)
+        page_text_translated = "\n".join(pages_translated[page_num])
+        page_text_original = "\n".join(pages_original[page_num])
         line_numbers = page_line_map[page_num]
         
         # Get the starting line number for this page
         starting_line = line_numbers[0] if line_numbers else 1
         
-        # Split into meaningful chunks
-        chunks = splitter.split_text(page_text)
+        # Split into meaningful chunks (using translated text)
+        chunks_translated = splitter.split_text(page_text_translated)
         
         # Calculate line numbers more accurately
         current_char_pos = 0
-        for idx, chunk in enumerate(chunks):
+        for idx, chunk_translated in enumerate(chunks_translated):
             # Find which line this chunk starts at by counting newlines up to this point
-            text_before_chunk = page_text[:current_char_pos]
+            text_before_chunk = page_text_translated[:current_char_pos]
             lines_before = text_before_chunk.count('\n')
             
             # Calculate the actual line number for this chunk
@@ -199,13 +206,28 @@ def chunk_text(records):
                 # Fallback if we're beyond tracked lines
                 chunk_line = starting_line + lines_before
             
+            # Extract corresponding original text chunk
+            # Find the character positions in the original text
+            chunk_end_pos = current_char_pos + len(chunk_translated)
+            
+            # Map to original text (approximate by character position)
+            # This is a best-effort mapping since translations may differ in length
+            original_start = current_char_pos
+            original_end = min(chunk_end_pos, len(page_text_original))
+            chunk_original = page_text_original[original_start:original_end]
+            
             docs.append(Document(
-                page_content=chunk, 
-                metadata={"page": page_num, "line": chunk_line, "chunk_id": idx}
+                page_content=chunk_translated,  # Use translated for RAG
+                metadata={
+                    "page": page_num, 
+                    "line": chunk_line, 
+                    "chunk_id": idx,
+                    "text_original": chunk_original  # Store original for highlighting
+                }
             ))
             
             # Update position for next chunk
-            current_char_pos += len(chunk)
+            current_char_pos += len(chunk_translated)
             
     return docs
 
@@ -549,8 +571,10 @@ After completing these steps, provide your final JSON answer.
     # even if cosine similarity is low due to vocabulary differences.
 
     # Generate supporting clauses with deduplication by page/line
+    # MULTILINGUAL FIX: Generate both translated and original clauses
     seen_locations = set()
     supporting_clauses = []
+    supporting_clauses_original = []
     
     for d in docs:
         page = d.metadata.get('page')
@@ -559,8 +583,14 @@ After completing these steps, provide your final JSON answer.
         
         # Only add if we haven't seen this page/line combination
         if location_key not in seen_locations:
+            # Translated text for display/analysis
             clause_text = d.page_content[:250].strip()
             supporting_clauses.append(f"[Page {page} Line {line}] {clause_text}")
+            
+            # Original text for PDF highlighting
+            clause_text_original = d.metadata.get('text_original', clause_text)[:250].strip()
+            supporting_clauses_original.append(f"[Page {page} Line {line}] {clause_text_original}")
+            
             seen_locations.add(location_key)
     
     return {
@@ -568,6 +598,7 @@ After completing these steps, provide your final JSON answer.
         "similarity_score": round(best_score, 3), "keyword_hits": keyword_hits,
         "confidence": confidence, "page": best_doc.metadata.get("page"), "line": best_doc.metadata.get("line"),
         "supporting_clauses": supporting_clauses,
+        "supporting_clauses_original": supporting_clauses_original,  # NEW: Original language for PDF highlighting
         "suggestion": llm_suggestion,
         "cot_steps": cot_steps  # NEW: Step-by-step validation results
     }
@@ -598,9 +629,12 @@ def analyze_contract(obligations_file_bytes, obligations_filename, contract_file
     else:
         records = extract_text_from_txt(contract_file_bytes)
         
-    # Translate contract text
+    # MULTILINGUAL FIX: Preserve original text before translation
+    # Store both original and translated text for dual-track processing
     for rec in records:
-        rec["text"] = translate_to_english(rec["text"]).strip()
+        rec["text_original"] = rec["text"]  # Preserve original
+        rec["text_translated"] = translate_to_english(rec["text"]).strip()  # Translate for analysis
+        rec["text"] = rec["text_translated"]  # Backward compatibility
         
     # 3. Build Vector Store
     docs = chunk_text(records)
@@ -623,6 +657,6 @@ def analyze_contract(obligations_file_bytes, obligations_filename, contract_file
         logger.warning(f"Failed to cleanup vector store {vector_path}: {e}")
     
     # 6. Prepare Full Text for Preview Fallback
-    full_text = "\n\n".join([r["text"] for r in records])
+    full_text = "\n\n".join([r["text_translated"] for r in records])
 
     return results, full_text

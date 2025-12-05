@@ -27,7 +27,9 @@ export function AnalysisResults({
 
   const handleChangeObligation = (obligation: any) => {
     setSelectedObligation(obligation);
-    setSelectedClause(obligation.supporting_clauses.join("\n"));
+    // Use original language text for PDF highlighting (if available)
+    const clausesForHighlighting = obligation.supporting_clauses_original || obligation.supporting_clauses;
+    setSelectedClause(clausesForHighlighting.join("\n"));
   };
 
   const [openItemId, setOpenItemId] = useState<number | null>(null);
